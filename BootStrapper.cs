@@ -1,4 +1,5 @@
-﻿using DataComparer.Settings;
+﻿using DataComparer.DatabaseConnectors;
+using DataComparer.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,8 +17,13 @@ namespace DataComparer
             IServiceCollection services = new ServiceCollection();
             var config = LoadConfiguration();
             services.AddSingleton(config);
+
             services.AddTransient<IReadSettings, AppSettings>();
+            services.AddSingleton<IOracleConnector, OracleConnector>();
+            services.AddSingleton<ISqlServerConnector, SqlServerConnector>();
+
             services.AddTransient<App>();
+            
             return services;
         }
 

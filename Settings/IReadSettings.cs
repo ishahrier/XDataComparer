@@ -2,7 +2,7 @@
 {
     public interface IReadSettings
     {
-        DataFlowSettings DataFlow { get; }
+        DataFlowSettings DataFlowSettings { get; }
         string GetConnectionString(DataFlow f);
     }
 }

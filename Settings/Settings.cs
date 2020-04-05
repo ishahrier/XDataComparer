@@ -8,7 +8,7 @@ namespace DataComparer.Settings
 
         public AppSettings(IConfiguration config) => this.config = config;
         public string GetConnectionString(DataFlow f) => config.GetConnectionString(f.ConnectionName);
-        public DataFlowSettings DataFlow
+        public DataFlowSettings DataFlowSettings
         {
             get
             {
