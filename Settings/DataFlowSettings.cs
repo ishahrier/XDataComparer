@@ -1,9 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DataComparer
+﻿namespace DataComparer.Settings
 {
     public class DataFlowSettings
     {

@@ -1,17 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 
-namespace DataComparer
+namespace DataComparer.Settings
 {
-    public class Settings : IReadSettings
+    public class AppSettings : IReadSettings
     {
         private readonly IConfiguration config;
 
-        public Settings(IConfiguration config) => this.config = config;
+        public AppSettings(IConfiguration config) => this.config = config;
         public string GetConnectionString(DataFlow f) => config.GetConnectionString(f.ConnectionName);
         public DataFlowSettings DataFlow
         {

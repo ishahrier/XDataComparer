@@ -1,4 +1,4 @@
-﻿namespace DataComparer
+﻿namespace DataComparer.Settings
 {
     public interface IReadSettings
     {

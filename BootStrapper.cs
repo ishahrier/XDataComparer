@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DataComparer.Settings;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace DataComparer
             IServiceCollection services = new ServiceCollection();
             var config = LoadConfiguration();
             services.AddSingleton(config);
-            services.AddTransient<IReadSettings,Settings>();
+            services.AddTransient<IReadSettings, AppSettings>();
             services.AddTransient<App>();
             return services;
         }
@@ -29,6 +30,6 @@ namespace DataComparer
             return builder.Build();
         }
 
-        public static void BootApp(string[] args) => new BootStrapper().ConfigureServices().BuildServiceProvider().GetService<App>().Run( args);
+        public static void BootApp(string[] args) => new BootStrapper().ConfigureServices().BuildServiceProvider().GetService<App>().Run(args);
     }
 }
