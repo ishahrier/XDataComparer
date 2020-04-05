@@ -7,10 +7,21 @@ using System.Text;
 
 namespace DataComparer
 {
-    public class Settings
+    public class Settings : IReadSettings
     {
-        public static string DefaultSourceDb;
-    }
+        private readonly IConfiguration config;
 
- 
+        public Settings(IConfiguration config) => this.config = config;
+        public string GetConnectionString(DataFlow f) => config.GetConnectionString(f.ConnectionName);
+        public DataFlowSettings DataFlow
+        {
+            get
+            {
+                var setting = new DataFlowSettings();
+                config.GetSection("DataFlow").Bind(setting);
+                return setting;
+            }
+        }
+
+    }
 }

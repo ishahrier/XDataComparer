@@ -9,14 +9,16 @@ namespace DataComparer
 {
     public class App
     {
-        private readonly IConfiguration _config;
-        public App(IConfiguration config)
-        {
-            _config = config;
+        private readonly IReadSettings settings;
+
+        public App(IReadSettings settings)
+        {            
+            this.settings = settings;
         }
 
         public void Run(string[] args)
         {
+            Console.WriteLine(this.settings.GetConnectionString(this.settings.DataFlow.Source));
             Console.WriteLine($"presee a {"key".Pastel(Color.Red)}");
         }
     }

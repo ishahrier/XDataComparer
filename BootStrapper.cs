@@ -15,6 +15,7 @@ namespace DataComparer
             IServiceCollection services = new ServiceCollection();
             var config = LoadConfiguration();
             services.AddSingleton(config);
+            services.AddTransient<IReadSettings,Settings>();
             services.AddTransient<App>();
             return services;
         }
