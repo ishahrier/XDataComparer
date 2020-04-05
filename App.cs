@@ -1,10 +1,7 @@
 ﻿using DataComparer.Settings;
-using Microsoft.Extensions.Configuration;
 using Pastel;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace DataComparer
 {
