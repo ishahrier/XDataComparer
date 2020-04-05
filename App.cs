@@ -19,7 +19,7 @@ namespace DataComparer
 
         public void Run(string[] args)
         {
-            Console.WriteLine(this.settings.GetConnectionString(this.settings.DataFlow.Source));
+            Console.WriteLine( settings.DataFlow.Target.DbType);
             Console.WriteLine($"presee a {"key".Pastel(Color.Red)}");
         }
     }

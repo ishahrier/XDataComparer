@@ -1,5 +1,10 @@
 ﻿namespace DataComparer.Settings
 {
+    public enum DbType
+    {
+        Oracle,
+        SqlServer
+    }
     public class DataFlowSettings
     {
         public DataFlow Source { get; set; }
@@ -7,13 +12,8 @@
     }
 
     public class DataFlow
-    {
-        public DataFlow()
-        {
-        }
-        public string DbType { get; set; }
-        public string ConnectionName { get; set; }
-
- 
+    { 
+        public DbType DbType { get; set; }
+        public string ConnectionName { get; set; } 
     }
 }
