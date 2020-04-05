@@ -1,12 +1,16 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace DataComparer
 {
-    public class Program
+    public class Settings
     {
-        static void Main(string[] args) => BootStrapper.BootApp(args);
+        public static string DefaultSourceDb;
     }
+
+ 
 }
