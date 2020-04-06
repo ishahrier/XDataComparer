@@ -10,10 +10,21 @@ using System.Diagnostics;
 
 namespace DataComparer.Validator
 {
-    public abstract class ABaseValidator<T,TK> : IDisposable, IDataValidator where T:DbConnection where TK:DbConnection
+    /// <summary>
+    /// A Base database data validator
+    /// </summary>
+    /// <typeparam name="S">Source database connection i.e OracleConnection</typeparam>
+    /// <typeparam name="T">Target adtabase connection i.e. SqlConnection</typeparam>
+    public abstract class ABaseValidator<S,T> : IDisposable, IDataValidator where S:DbConnection where T:DbConnection
     {
-        private T sourceDbConnection;
-        private TK targetDbConnection;
+        /// <summary>
+        /// Source database connection
+        /// </summary>
+        private S sourceDbConnection;
+        /// <summary>
+        /// Target database connection
+        /// </summary>
+        private T targetDbConnection;
         private readonly IServiceProvider services;
 
         public ABaseValidator(IServiceProvider services) => this.services = services;
@@ -51,23 +62,7 @@ namespace DataComparer.Validator
         public abstract string GetSourceSql();
         public abstract string GetTargetSql();
         public abstract string GetValidationGroup();
-
         protected abstract bool StartValidation();
-
-        protected virtual DataBaseType GetSourceDataBaseType() => services.GetService<IDbConnector<T>>().GetDataBaseType();
-        protected virtual DataBaseType GetTargetDataBaseType() => services.GetService<IDbConnector<TK>>().GetDataBaseType();
-        protected virtual T GetSourceDBConnection()
-        {
-            if (sourceDbConnection == null)
-                sourceDbConnection = services.GetService<IDbConnector<T>>().GetConnection();
-            return sourceDbConnection;
-        }
-        protected virtual TK GetTargetDBConnection()
-        {
-            if (targetDbConnection == null)
-                targetDbConnection = services.GetService<IDbConnector<TK>>().GetConnection();
-            return targetDbConnection;
-        }
 
         #endregion
 
@@ -75,6 +70,27 @@ namespace DataComparer.Validator
         public virtual string GetCommandCode() => GetType().Name.GetCamelCaseLetters();
         public virtual string GetDescription() => GetType().Name;
         public virtual string GetName() => GetType().Name;
+
+        protected virtual DataBaseType GetSourceDataBaseType() => services.GetService<IDbConnector<S>>().GetDataBaseType();
+        protected virtual DataBaseType GetTargetDataBaseType() => services.GetService<IDbConnector<T>>().GetDataBaseType();
+        protected virtual S GetSourceDBConnection()
+        {
+            if (sourceDbConnection == null)
+            {
+                sourceDbConnection = services.GetService<IDbConnector<S>>().GetConnection();
+                sourceDbConnection.Open();
+            }
+            return sourceDbConnection;
+        }
+        protected virtual T GetTargetDBConnection()
+        {
+            if (targetDbConnection == null)
+            {
+                targetDbConnection = services.GetService<IDbConnector<T>>().GetConnection();
+                targetDbConnection.Open();
+            }
+            return targetDbConnection;
+        }
         public virtual void Dispose()
         {
             if (sourceDbConnection != null && sourceDbConnection.State != System.Data.ConnectionState.Closed) sourceDbConnection.Close();
@@ -92,9 +108,15 @@ namespace DataComparer.Validator
             var sCount = DoTargetCount(targetCountSql);
             return DisplayCountResult(oCount, sCount);
         }
+        /// <summary>
+        /// Wraps up any sql with count sql keyword for counting the total records returned by the original select sql
+        /// </summary>
+        /// <param name="sql">Original select SQL</param>
+        /// <returns>total number of records</returns>
         protected int DoSourceCount(string sql)
         {
             var countSql = $"select count(*) from ({sql})";
+            if (this.GetSourceDataBaseType() == DataBaseType.SqlServer) countSql += " as c";
             var count = 0;
             using (var cmd = GetSourceDBConnection().CreateCommand())
             {
@@ -103,10 +125,15 @@ namespace DataComparer.Validator
             }
             return count;
         }
+        /// <summary>
+        /// Wraps up any sql with count sql keyword for counting the total records returned by the original select sql
+        /// </summary>
+        /// <param name="sql">Original select SQL</param>
+        /// <returns>total number of records</returns>
         protected int DoTargetCount(string sql)
         {
-            var countSql = $"select count(*) from ({sql}) as c";
-
+            var countSql = $"select count(*) from ({sql})";
+            if (this.GetSourceDataBaseType() == DataBaseType.SqlServer) countSql += " as c";
             var count = 0;
             using (var cmd = GetSourceDBConnection().CreateCommand())
             {
@@ -116,6 +143,12 @@ namespace DataComparer.Validator
 
             return count;
         }
+        /// <summary>
+        /// Displays the formatted count record result.
+        /// </summary>
+        /// <param name="sourceCount">Total records found in source DB</param>
+        /// <param name="targetCount">Total records found in source DB</param>
+        /// <returns>True if total numbers are equal in both DB, False otherwise.</returns>
         protected bool DisplayCountResult(int sourceCount, int targetCount)
         {
             bool noError = true;
@@ -130,9 +163,6 @@ namespace DataComparer.Validator
 
             return noError;
         }
-
-
-
         #endregion
 
         #endregion

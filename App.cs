@@ -1,11 +1,11 @@
 ﻿using DataComparer.DatabaseConnectors;
 using DataComparer.Settings;
+using DataComparer.Validator;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.DependencyInjection;
 using Pastel;
 using System;
 using System.Drawing;
-using Microsoft.Extensions.DependencyInjection;
-using Oracle.ManagedDataAccess.Client;
-using Microsoft.Data.SqlClient;
 
 namespace DataComparer
 {
@@ -15,8 +15,8 @@ namespace DataComparer
 
         public App(IReadSettings settings, IServiceProvider provider)
         {
-            var con = provider.GetService<IDbConnector<SqlConnection>>();
-            con.TestConnection(con.GetConnection());
+            CustomersCount c = new CustomersCount(provider);
+            c.Run();
 
             this.settings = settings;
         }
