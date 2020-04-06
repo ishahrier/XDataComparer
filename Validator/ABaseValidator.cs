@@ -5,8 +5,11 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Linq;
 
 namespace DataComparer.Validator
 {
@@ -15,7 +18,7 @@ namespace DataComparer.Validator
     /// </summary>
     /// <typeparam name="S">Source database connection i.e OracleConnection</typeparam>
     /// <typeparam name="T">Target adtabase connection i.e. SqlConnection</typeparam>
-    public abstract class ABaseValidator<S,T> : IDisposable, IDataValidator where S:DbConnection where T:DbConnection
+    public abstract class ABaseValidator<S, T> : IDisposable, IDataValidator where S : DbConnection where T : DbConnection
     {
         /// <summary>
         /// Source database connection
@@ -56,9 +59,8 @@ namespace DataComparer.Validator
             return retRes;
         }
 
-
         #region Abstract methods
-        
+
         public abstract string GetSourceSql();
         public abstract string GetTargetSql();
         public abstract string GetValidationGroup();
@@ -165,11 +167,133 @@ namespace DataComparer.Validator
         }
         #endregion
 
+        #region Table records comparison helper
+
+        protected DataSet GetSourceDataSet(string sourceSql)
+        {
+            DataSet sourceDataSet = new DataSet();
+
+            using (var cmd = GetSourceDBConnection().CreateCommand())
+            {
+                cmd.CommandText = sourceSql;
+                var adapter = new OracleDataAdapter(cmd);
+                adapter.Fill(sourceDataSet);
+            }
+
+            return sourceDataSet;
+        }
+        protected DataSet GetTarGetDataSet(string targetSql)
+        {
+            DataSet cobalt = new DataSet();
+
+            using (var cmd = GetTargetDBConnection().CreateCommand())
+            {
+                cmd.CommandText = targetSql;
+                var adapter = new SqlDataAdapter(cmd);
+                adapter.Fill(cobalt);
+            }
+
+            return cobalt;
+        }
+
+        /// <summary>
+        /// Compares two data sets. There must be a key present in both data sets and the columns must be same in both data sets.
+        /// Columns don't have to be ordered but they should ne named same in both data sets.
+        /// Data need not to be sorted either.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="cols"></param>
+        /// <param name="dataRowComparer">Function to compare the columns for a data row in the given data sets</param>
+        /// <returns></returns>
+        protected DictionaryCompareResult<DataRow> CompareRecords(Dictionary<string, DataRow> source, Dictionary<string, DataRow> target, DataColumnCollection cols, Func<ValueCompareCandidates<DataRow>, DataColumnCollection, int> dataRowComparer)
+        {
+            var result = new DictionaryCompareResult<DataRow>();
+            foreach (var d in source.Keys)
+            {
+                if (target.ContainsKey(d))
+                {
+                    var candidates = new ValueMatchingCandidate<DataRow>()
+                    {
+                        CobaltPair = new KeyValuePair<string, DataRow>(d, target[d]),
+                        RedsPair = new KeyValuePair<string, DataRow>(d, source[d])
+                    };
+                    var totalColValueMismatched = dataRowComparer(candidates, cols);
+
+                    if (totalColValueMismatched > 0) result.MismatchedValues.Add(candidates);
+                }
+                else
+                    result.MismatchedKeys.Add(d, source[d]);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Total unmatched KEYs: " + result.MismatchedKeys.Count.ToString().Info());
+            Console.WriteLine("Total unmatched RECORDs: " + result.MismatchedValues.Count.ToString().Info());
+            return result;
+        }
+        protected DictionaryCompareResult<DataRow> DoRecordValidation(Func<ValueCompareCandidates<DataRow>, DataColumnCollection, int> dataRowComparer = null)
+        {
+            var rSet = GetSourceDataSet(GetSourceSql());
+            var cSet = GetTarGetDataSet(GetTargetSql());
+            var rDict = rSet.Tables[0].AsEnumerable().ToDictionary<DataRow, string, DataRow>(row => row[0].ToString(), row => row);
+            var cDict = cSet.Tables[0].AsEnumerable().ToDictionary<DataRow, string, DataRow>(row => row[0].ToString(), row => row);
+            var result = CompareRecords(rDict, cDict, rSet.Tables[0].Columns, dataRowComparer ?? DefaultDataRowComparer);
+            return result;
+        }
+        
         #endregion
+
+        #endregion
+
+
+        #region Funcs<>s
+        protected   Func<ValueMatchingCandidate<DataRow>, DataColumnCollection, int> DefaultDataRowComparer =
+                    ((candidates, cols) =>
+                    {
+                        var rData = candidates.RedsPair;
+                        var cData = candidates.CobaltPair;
+                        var totalColError = 0;
+                        for (var cId = 0; cId < cols.Count; cId++)
+                        {
+                            var col = cols[cId];
+                            var rValue = rData.Value[col.ColumnName];
+                            var cValue = cData.Value[col.ColumnName];
+                            var noError = true;
+
+                            if (rValue == DBNull.Value || cValue == DBNull.Value)
+                            {
+                                if (rValue != cValue) noError = false;
+                            }
+                            else if (col.DataType == typeof(string))
+                            {
+                                if (!rValue.ToString().Equals(cValue.ToString())) noError = false;
+                            }
+                            else if (col.DataType == typeof(Int32) || col.DataType == typeof(Int64) ||
+                                     col.DataType == typeof(Int64) || col.DataType == typeof(decimal) ||
+                                     col.DataType == typeof(int))
+                            {
+                                if (Convert.ToDecimal(rValue) != Convert.ToDecimal(cValue)) noError = false;
+                            }
+                            else
+                                throw new Exception(
+                                    $"Invalid data type detected at key = '{candidates.Key}' col name = '{col.ColumnName}'");
+
+                            if (!noError)
+                            {
+                                if (totalColError == 0) Console.WriteLine();
+                                totalColError++;
+                                Console.WriteLine(
+                                    $"Column value mismatch | Key: '{candidates.Key.Warning()}' | Col: '{cols[cId].ColumnName.Warning()}' | Source Val: '{rValue}' | Target Val: '{cValue}' ");
+                            }
+                        }
+
+                        return totalColError;
+                    });
+        #endregion
+
     }
 
 
-    public class CustomersCount : ABaseValidator<OracleConnection,SqlConnection>
+    public class CustomersCount : ABaseValidator<OracleConnection, SqlConnection>
     {
         public CustomersCount(IServiceProvider service) : base(service)
         {
