@@ -10,9 +10,8 @@ namespace DataComparer.Extensions
         {
             if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input)) return string.Empty;
 
-            List<char> chars = new List<char>();
-            int count = 1;
-            for (int i = 1; i < input.Length - 1; i++)
+            List<char> chars = new List<char>();            
+            for (int i = 0; i < input.Length ; i++)
             {
                 if (input[i] >= 65 && input[i] <= 90)
                     chars.Add(input[i]);
