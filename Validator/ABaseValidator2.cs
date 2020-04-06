@@ -33,7 +33,7 @@
 
 //    }
 
-//    public abstract class ABaseDataValidator2 :  IDisposable
+//    public abstract class ABaseDataValidator2 : IDisposable
 //    {
 //        #region Protected members
 //        protected OracleConnection RedsCon;
@@ -109,7 +109,7 @@
 //	                          (SERVICE_NAME = pdb01.privsubnet2reg.vcnnewmarket01.oraclevcn.com)
 //	                        ))";
 
-//            if (OracleConfiguration.OracleDataSources ["dev"] == "")
+//            if (OracleConfiguration.OracleDataSources["dev"] == "")
 //                OracleConfiguration.OracleDataSources.Add("dev", tns);
 
 //            var oc = new OracleConnection("user id=tdmuser; password=D8J8w43SQ_4h_JzJ1GbG; data source=dev");

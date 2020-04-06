@@ -15,7 +15,7 @@ namespace DataComparer
 
         public App(IReadSettings settings, IServiceProvider provider)
         {
-            CustomersCount c = new CustomersCount(provider);
+            CustomersRecord c = new CustomersRecord(provider);
             c.Run();
 
             this.settings = settings;

@@ -178,12 +178,12 @@ namespace DataComparer.Validator
 
         protected DataSet GetSourceDataSet(string sourceSql)
         {
-            DataSet sourceDataSet =  GetSourceConnector().Fill(sourceSql, sourceDbConnection);
+            DataSet sourceDataSet =  GetSourceConnector().Fill(sourceSql, GetSourceDBConnection());
             return sourceDataSet;
         }
         protected DataSet GetTargetDataSet(string targetSql)
         {
-            DataSet targetDs =  GetTargetConnector().Fill(targetSql,targetDbConnection);
+            DataSet targetDs =  GetTargetConnector().Fill(targetSql,GetTargetDBConnection());
             return targetDs;
         }
 
@@ -299,6 +299,26 @@ namespace DataComparer.Validator
         protected override bool StartValidation()
         {
             return DoCountValidation();
+        }
+    }
+
+    public class CustomersRecord : ABaseValidator<OracleConnection, SqlConnection>
+    {
+        public CustomersRecord(IServiceProvider service) : base(service)
+        {
+
+        }
+        public override string GetSourceSql() => "select CustomerId,CompanyName,City from customers";
+
+        public override string GetTargetSql() => "Select CustomerId,CompanyName,City  from customers";
+
+        public override string GetValidationGroup() => "RedsToTdm";
+
+
+        protected override bool StartValidation()
+        {
+            var result = DoRecordValidation();
+            return !result.MismatchedValues.Any() && !result.MismatchedKeys.Any();
         }
     }
 }
