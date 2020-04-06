@@ -2,6 +2,7 @@
 using DataComparer.Settings;
 using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Data;
 
 namespace DataComparer.DatabaseConnectors
 {
@@ -20,8 +21,17 @@ namespace DataComparer.DatabaseConnectors
                 OracleConfiguration.OracleDataSources.Add(setting.ConnectionName, conString);
             return new OracleConnection(conString);
         }
-       
 
- 
+        public override DataSet Fill(string sql, OracleConnection con)
+        {
+            DataSet ds = new DataSet();
+            using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                var adapter = new OracleDataAdapter(cmd);
+                adapter.Fill(ds);
+            }
+            return ds;
+        }
     }
 }

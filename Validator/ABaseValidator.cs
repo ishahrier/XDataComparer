@@ -59,6 +59,13 @@ namespace DataComparer.Validator
             return retRes;
         }
 
+
+        #region Private methods
+        private IDbConnector<S> GetSourceConnector() => services.GetService<IDbConnector<S>>();
+        private IDbConnector<T> GetTargetConnector() => services.GetService<IDbConnector<T>>();
+
+        #endregion
+
         #region Abstract methods
 
         public abstract string GetSourceSql();
@@ -73,13 +80,13 @@ namespace DataComparer.Validator
         public virtual string GetDescription() => GetType().Name;
         public virtual string GetName() => GetType().Name;
 
-        protected virtual DataBaseType GetSourceDataBaseType() => services.GetService<IDbConnector<S>>().GetDataBaseType();
-        protected virtual DataBaseType GetTargetDataBaseType() => services.GetService<IDbConnector<T>>().GetDataBaseType();
+        protected virtual DataBaseType GetSourceDataBaseType() => GetSourceConnector().GetDataBaseType();
+        protected virtual DataBaseType GetTargetDataBaseType() => GetTargetConnector().GetDataBaseType();
         protected virtual S GetSourceDBConnection()
         {
             if (sourceDbConnection == null)
             {
-                sourceDbConnection = services.GetService<IDbConnector<S>>().GetConnection();
+                sourceDbConnection = GetSourceConnector().GetConnection();
                 sourceDbConnection.Open();
             }
             return sourceDbConnection;
@@ -88,7 +95,7 @@ namespace DataComparer.Validator
         {
             if (targetDbConnection == null)
             {
-                targetDbConnection = services.GetService<IDbConnector<T>>().GetConnection();
+                targetDbConnection = GetTargetConnector().GetConnection();
                 targetDbConnection.Open();
             }
             return targetDbConnection;
@@ -171,29 +178,13 @@ namespace DataComparer.Validator
 
         protected DataSet GetSourceDataSet(string sourceSql)
         {
-            DataSet sourceDataSet = new DataSet();
-
-            using (var cmd = GetSourceDBConnection().CreateCommand())
-            {
-                cmd.CommandText = sourceSql;
-                var adapter = new OracleDataAdapter(cmd);
-                adapter.Fill(sourceDataSet);
-            }
-
+            DataSet sourceDataSet =  GetSourceConnector().Fill(sourceSql, sourceDbConnection);
             return sourceDataSet;
         }
-        protected DataSet GetTarGetDataSet(string targetSql)
+        protected DataSet GetTargetDataSet(string targetSql)
         {
-            DataSet cobalt = new DataSet();
-
-            using (var cmd = GetTargetDBConnection().CreateCommand())
-            {
-                cmd.CommandText = targetSql;
-                var adapter = new SqlDataAdapter(cmd);
-                adapter.Fill(cobalt);
-            }
-
-            return cobalt;
+            DataSet targetDs =  GetTargetConnector().Fill(targetSql,targetDbConnection);
+            return targetDs;
         }
 
         /// <summary>
@@ -213,7 +204,7 @@ namespace DataComparer.Validator
             {
                 if (target.ContainsKey(d))
                 {
-                    var candidates = new ValueMatchingCandidate<DataRow>()
+                    var candidates = new ValueCompareCandidates<DataRow>()
                     {
                         CobaltPair = new KeyValuePair<string, DataRow>(d, target[d]),
                         RedsPair = new KeyValuePair<string, DataRow>(d, source[d])
@@ -233,7 +224,7 @@ namespace DataComparer.Validator
         protected DictionaryCompareResult<DataRow> DoRecordValidation(Func<ValueCompareCandidates<DataRow>, DataColumnCollection, int> dataRowComparer = null)
         {
             var rSet = GetSourceDataSet(GetSourceSql());
-            var cSet = GetTarGetDataSet(GetTargetSql());
+            var cSet = GetTargetDataSet(GetTargetSql());
             var rDict = rSet.Tables[0].AsEnumerable().ToDictionary<DataRow, string, DataRow>(row => row[0].ToString(), row => row);
             var cDict = cSet.Tables[0].AsEnumerable().ToDictionary<DataRow, string, DataRow>(row => row[0].ToString(), row => row);
             var result = CompareRecords(rDict, cDict, rSet.Tables[0].Columns, dataRowComparer ?? DefaultDataRowComparer);
@@ -244,9 +235,8 @@ namespace DataComparer.Validator
 
         #endregion
 
-
         #region Funcs<>s
-        protected   Func<ValueMatchingCandidate<DataRow>, DataColumnCollection, int> DefaultDataRowComparer =
+        protected   Func<ValueCompareCandidates<DataRow>, DataColumnCollection, int> DefaultDataRowComparer =
                     ((candidates, cols) =>
                     {
                         var rData = candidates.RedsPair;

@@ -41,6 +41,7 @@ namespace DataComparer.DatabaseConnectors
             }
         }
 
-     
+        public abstract DataSet Fill(string sql,T con);
+         
     }
 }
