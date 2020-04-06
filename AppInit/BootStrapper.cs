@@ -6,12 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Oracle.ManagedDataAccess.Client;
 using System.IO;
 
-namespace DataComparer
+namespace DataComparer.Appinit
 {
     public class BootStrapper
     {
 
-        private IServiceCollection ConfigureServices()
+        private IServiceCollection ConfigureServices() 
         {
             IServiceCollection services = new ServiceCollection();
             var config = LoadConfiguration();

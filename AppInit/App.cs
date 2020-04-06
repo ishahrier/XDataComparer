@@ -7,7 +7,7 @@ using Pastel;
 using System;
 using System.Drawing;
 
-namespace DataComparer
+namespace DataComparer.Appinit
 {
     public class App
     {
