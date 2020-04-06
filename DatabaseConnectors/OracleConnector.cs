@@ -5,11 +5,11 @@ using System;
 
 namespace DataComparer.DatabaseConnectors
 {
-    public class OracleConnector : ABaseConnector<OracleConnection>
+    public class OracleConnector : ABaseConnector<OracleConnection> 
     {
         public OracleConnector(IReadSettings settings) : base(settings) { }
 
-        protected override DataBaseType GetDatabaseType() => DataBaseType.Oracle;
+        public override DataBaseType GetDataBaseType() => DataBaseType.Oracle;
 
         public override OracleConnection GetConnection(DataFlow setting)
         {
@@ -21,6 +21,7 @@ namespace DataComparer.DatabaseConnectors
             return new OracleConnection(conString);
         }
        
+
  
     }
 }

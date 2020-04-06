@@ -10,8 +10,9 @@ namespace DataComparer.DatabaseConnectors
     public interface IDbConnector<T> where T : DbConnection
     {
         T GetConnection(DataFlow setting);
-        T GetDefaultConnection();
+        T GetConnection();
         void TestConnection(T con);
+        DataBaseType GetDataBaseType();
     }
 
 

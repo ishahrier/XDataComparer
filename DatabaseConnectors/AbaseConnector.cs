@@ -13,12 +13,12 @@ namespace DataComparer.DatabaseConnectors
         protected readonly IReadSettings settings;
         protected ABaseConnector(IReadSettings settings) => this.settings = settings;
 
-        protected abstract DataBaseType GetDatabaseType();
-        public T GetDefaultConnection()
+        public abstract DataBaseType GetDataBaseType();
+        public T GetConnection()
         {
-            if (settings.DataFlowSettings.Source.DataBaseType == GetDatabaseType()) return GetConnection(settings.DataFlowSettings.Source);
-            else if (settings.DataFlowSettings.Target.DataBaseType == GetDatabaseType()) return GetConnection(settings.DataFlowSettings.Target);
-            else throw new Exception($"Neither 'Source' or 'Target' DbType is '{GetDatabaseType()}'");
+            if (settings.DataFlowSettings.Source.DataBaseType == GetDataBaseType()) return GetConnection(settings.DataFlowSettings.Source);
+            else if (settings.DataFlowSettings.Target.DataBaseType == GetDataBaseType()) return GetConnection(settings.DataFlowSettings.Target);
+            else throw new Exception($"Neither 'Source' or 'Target' DbType is '{GetDataBaseType()}'");
         }
         public abstract T GetConnection(DataFlow flowSetting);
 
@@ -26,7 +26,7 @@ namespace DataComparer.DatabaseConnectors
         {
             try
             {
-                Console.WriteLine($"Testing connection to '{GetDatabaseType()}' Database...".InfoWithBg());
+                Console.WriteLine($"Testing connection to '{GetDataBaseType()}' Database...".InfoWithBg());
                 Console.Write("Connection String: ");
                 Console.WriteLine("\"" + con.ConnectionString.HotPink() + "\"");
                 Console.Write("Opening connection...");
@@ -36,9 +36,11 @@ namespace DataComparer.DatabaseConnectors
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error Connecting to '{GetDatabaseType()}' Database.".ErrorWithBg());
+                Console.WriteLine($"Error Connecting to '{GetDataBaseType()}' Database.".ErrorWithBg());
                 Console.WriteLine(ex);
             }
         }
+
+     
     }
 }

@@ -33,7 +33,7 @@ namespace DataComparer.Validator
 
     }
 
-    public abstract class ABaseDataValidator2 : IValidateData2, IDisposable
+    public abstract class ABaseDataValidator2 :  IDisposable
     {
         #region Protected members
         protected OracleConnection RedsCon;

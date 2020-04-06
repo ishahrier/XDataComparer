@@ -16,7 +16,7 @@ namespace DataComparer
         public App(IReadSettings settings, IServiceProvider provider)
         {
             var con = provider.GetService<IDbConnector<SqlConnection>>();
-            con.TestConnection(con.GetDefaultConnection());
+            con.TestConnection(con.GetConnection());
 
             this.settings = settings;
         }
