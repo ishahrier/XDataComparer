@@ -3,6 +3,9 @@ using DataComparer.Settings;
 using Pastel;
 using System;
 using System.Drawing;
+using Microsoft.Extensions.DependencyInjection;
+using Oracle.ManagedDataAccess.Client;
+using Microsoft.Data.SqlClient;
 
 namespace DataComparer
 {
@@ -10,8 +13,10 @@ namespace DataComparer
     {
         private readonly IReadSettings settings;
 
-        public App(IReadSettings settings)
+        public App(IReadSettings settings, IServiceProvider provider)
         {
+            var con = provider.GetService<IDbConnector<SqlConnection>>();
+            con.TestConnection(con.GetDefaultConnection());
 
             this.settings = settings;
         }

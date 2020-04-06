@@ -1,15 +1,14 @@
 ﻿using DataComparer.DatabaseConnectors;
 using DataComparer.Settings;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
+using Oracle.ManagedDataAccess.Client;
 using System.IO;
-using System.Text;
 
 namespace DataComparer
 {
-    internal class BootStrapper
+    public class BootStrapper
     {
 
         private IServiceCollection ConfigureServices()
@@ -19,8 +18,8 @@ namespace DataComparer
             services.AddSingleton(config);
 
             services.AddTransient<IReadSettings, AppSettings>();
-            services.AddSingleton<IOracleConnector, OracleConnector>();
-            services.AddSingleton<ISqlServerConnector, SqlServerConnector>();
+            services.AddSingleton<IDbConnector<OracleConnection>, OracleConnector>();
+            services.AddSingleton<IDbConnector<SqlConnection>, SqlServerConnector>();
 
             services.AddTransient<App>();
             
